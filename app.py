@@ -183,10 +183,14 @@ def treinar_modelo(df):
 # SIDEBAR — NAVEGAÇÃO
 # ──────────────────────────────────────────────
 with st.sidebar:
-    st.image("https://passosmagicos.org.br/wp-content/uploads/2020/07/logo-passos-magicos.png",
-             width=160, use_column_width=False)
-    st.markdown("---")
-    st.markdown("### Navegação")
+    st.markdown(
+        '<div style="font-size:1.5rem;font-weight:700;color:#FFFFFF;letter-spacing:0.02em;margin-bottom:2px;">'
+        '✨ Passos Mágicos</div>'
+        '<div style="font-size:0.78rem;color:#B8CEDD;margin-bottom:16px;">'
+        'Analytics · PEDE 2020–2022</div>',
+        unsafe_allow_html=True)
+    st.markdown('<hr style="border-color:#2C4A7C;margin:0 0 12px 0">', unsafe_allow_html=True)
+    st.markdown('<p style="color:#B8CEDD;font-size:0.75rem;font-weight:600;letter-spacing:0.08em;margin-bottom:6px;">NAVEGAÇÃO</p>', unsafe_allow_html=True)
     pagina = st.radio("", [
         "✨ Visão Geral",
         "📊 Indicadores",
@@ -195,9 +199,8 @@ with st.sidebar:
         "🚨 Alunos em Risco",
         "📈 Efetividade"
     ], label_visibility="collapsed")
-    st.markdown("---")
-    st.markdown("**Datathon FIAP · Fase 5**")
-    st.markdown("Passos Mágicos · 2020–2022")
+    st.markdown('<hr style="border-color:#2C4A7C;margin:12px 0">', unsafe_allow_html=True)
+    st.markdown('<p style="color:#B8CEDD;font-size:0.72rem;">Datathon FIAP · Fase 5<br>Passos Mágicos · 2020–2022</p>', unsafe_allow_html=True)
 
 # ──────────────────────────────────────────────
 # CARREGAMENTO
@@ -846,13 +849,16 @@ elif pagina == "🚨 Alunos em Risco":
     st.pyplot(fig, use_container_width=True)
     plt.close()
 
+
 # ══════════════════════════════════════════════
 # PÁGINA 6 — EFETIVIDADE
 # ══════════════════════════════════════════════
 elif pagina == "📈 Efetividade":
     st.title("📈 Efetividade do Programa")
+    st.markdown("Análise do impacto da Passos Mágicos no desenvolvimento dos alunos ao longo de 2020–2022.")
     st.markdown("---")
 
+    # ── Fileira 1: INDE por pedra + mobilidade ──
     col1, col2 = st.columns(2)
 
     with col1:
@@ -862,15 +868,15 @@ elif pagina == "📈 Efetividade":
         for pedra, cor in PEDRAS_CORES.items():
             d = inde_pedra[inde_pedra['PEDRA'] == pedra]
             if not d.empty:
-                ax.plot(d['ANO'], d['INDE'], 'o-', color=cor, linewidth=2.5,
-                        markersize=9, label=pedra)
+                ax.plot(d['ANO'], d['INDE'], 'o-', color=cor, linewidth=2.5, markersize=9, label=pedra)
                 for _, row in d.iterrows():
                     ax.annotate(f'{row["INDE"]:.2f}', xy=(row['ANO'], row['INDE']),
                                 xytext=(0, 10), textcoords='offset points',
                                 ha='center', fontsize=8, color=cor, fontweight='bold')
         ax.set_xticks([2020, 2021, 2022])
         ax.set_ylim(3, 10)
-        ax.set_ylabel('INDE médio')
+        ax.set_ylabel('INDE médio', color=CINZA_T)
+        ax.set_title('INDE médio por Pedra (2020–2022)', fontweight='bold', color=CINZA_T)
         ax.legend(title='Pedra', fontsize=9)
         ax.grid(alpha=0.3)
         sns.despine()
@@ -879,7 +885,6 @@ elif pagina == "📈 Efetividade":
 
     with col2:
         st.markdown('<p class="secao-titulo">Mobilidade de Pedras (2021 → 2022)</p>', unsafe_allow_html=True)
-        melhora = (df['PEDRA_2022_NUM'] > df['PEDRA_2021_NUM']).sum() if 'PEDRA_2022_NUM' in df.columns else 0
         df['PEDRA_2022_NUM'] = df['PEDRA_2022'].map({'Quartzo':1,'Ágata':2,'Ametista':3,'Topázio':4})
         df['PEDRA_2021_NUM'] = df['PEDRA_2021'].map({'Quartzo':1,'Ágata':2,'Ametista':3,'Topázio':4})
         melhora = int((df['PEDRA_2022_NUM'] > df['PEDRA_2021_NUM']).sum())
@@ -887,63 +892,149 @@ elif pagina == "📈 Efetividade":
         estavel = int((df['PEDRA_2022_NUM'] == df['PEDRA_2021_NUM']).sum())
         total   = melhora + piora + estavel
         fig, ax = plt.subplots(figsize=(6, 4))
-        vals = [melhora, estavel, piora]
-        labels = [f'Subiu\n{melhora} ({melhora/total*100:.1f}%)',
-                  f'Manteve\n{estavel} ({estavel/total*100:.1f}%)',
-                  f'Desceu\n{piora} ({piora/total*100:.1f}%)']
-        ax.pie(vals, labels=labels, colors=[AZUL_MED, CINZA, VERMELHO],
+        vals    = [melhora, estavel, piora]
+        rotulos = [f'Subiu\n{melhora} ({melhora/total*100:.1f}%)',
+                   f'Manteve\n{estavel} ({estavel/total*100:.1f}%)',
+                   f'Desceu\n{piora} ({piora/total*100:.1f}%)']
+        ax.pie(vals, labels=rotulos, colors=[AZUL_MED, CINZA, MARSALA],
                startangle=90, wedgeprops=dict(edgecolor='white', linewidth=2),
-               textprops=dict(fontsize=9))
-        ax.set_title('2021 → 2022', fontweight='bold')
+               textprops=dict(fontsize=9, color=CINZA_T))
+        ax.set_title('Mobilidade 2021 → 2022', fontweight='bold', color=CINZA_T)
         st.pyplot(fig, use_container_width=True)
         plt.close()
 
     st.markdown("---")
-    col3, col4 = st.columns(2)
+
+    # ── Fileira 2: bolsistas (colunas) + variação indicadores + faixa etária ──
+    col3, col4, col5 = st.columns(3)
 
     with col3:
-        st.markdown('<p class="secao-titulo">INDE médio — bolsistas vs não bolsistas (2022)</p>', unsafe_allow_html=True)
+        st.markdown('<p class="secao-titulo">INDE médio — bolsistas vs não bolsistas</p>', unsafe_allow_html=True)
         d_bolsa = df.dropna(subset=['BOLSISTA_2022','INDE_2022']).copy()
-        d_bolsa['Grupo'] = d_bolsa['BOLSISTA_2022'].map({1:'Bolsista',0:'Não bolsista'})
+        d_bolsa['Grupo'] = d_bolsa['BOLSISTA_2022'].map({1:'Bolsista', 0:'Não bolsista'})
+        grupos_b  = ['Não bolsista', 'Bolsista']
         medias_b  = d_bolsa.groupby('Grupo')['INDE_2022'].mean()
         ns_b      = d_bolsa.groupby('Grupo')['INDE_2022'].count()
-        grupos_b  = ['Não bolsista','Bolsista']
-        vals_b    = [medias_b.get(g,0) for g in grupos_b]
-        ns_vals_b = [ns_b.get(g,0) for g in grupos_b]
-        fig, ax = plt.subplots(figsize=(6, 4))
-        bars_b = ax.barh(grupos_b, vals_b,
-                         color=[CINZA, MARSALA], edgecolor='white', height=0.4)
+        vals_b    = [medias_b.get(g, 0) for g in grupos_b]
+        ns_vals_b = [ns_b.get(g, 0) for g in grupos_b]
+        fig, ax = plt.subplots(figsize=(5, 4))
+        bars_b = ax.bar(grupos_b, vals_b,
+                        color=[CINZA, MARSALA], edgecolor='white', width=0.45)
         for bar_b, val_b, n_b in zip(bars_b, vals_b, ns_vals_b):
-            ax.text(val_b+0.05, bar_b.get_y()+bar_b.get_height()/2,
-                    f'{val_b:.2f}  (n={int(n_b)})',
-                    va='center', fontsize=11, fontweight='bold', color=CINZA_T)
-        ax.set_xlabel('INDE médio 2022', color=CINZA_T)
-        ax.set_xlim(0, 10)
+            ax.text(bar_b.get_x()+bar_b.get_width()/2, val_b+0.08,
+                    f'{val_b:.2f}\n(n={int(n_b)})',
+                    ha='center', fontsize=10, fontweight='bold', color=CINZA_T)
         media_geral_b = d_bolsa['INDE_2022'].mean()
-        ax.axvline(media_geral_b, color=VERM_CLA, linestyle='--',
+        ax.axhline(media_geral_b, color=VERM_CLA, linestyle='--',
                    linewidth=1.5, label=f'Média geral: {media_geral_b:.2f}')
-        ax.legend(fontsize=9)
-        ax.tick_params(colors=CINZA_T)
+        ax.set_ylabel('INDE médio 2022', color=CINZA_T)
+        ax.set_ylim(0, 10)
+        ax.set_title('Bolsistas vs Não bolsistas', fontweight='bold', color=CINZA_T)
+        ax.legend(fontsize=8)
         sns.despine()
         st.pyplot(fig, use_container_width=True)
         plt.close()
 
     with col4:
+        st.markdown('<p class="secao-titulo">Variação dos indicadores 2020 → 2022</p>', unsafe_allow_html=True)
+        inds_ev = ['IAN','IDA','IEG','IAA','IPS','IPP','IPV']
+        medias_ev = {ind: round(df[f'{ind}_2022'].mean() - df[f'{ind}_2020'].mean(), 3) for ind in inds_ev}
+        ev_df  = pd.Series(medias_ev).sort_values()
+        cores_ev = [MARSALA if v < 0 else AZUL_MED for v in ev_df.values]
+        fig, ax = plt.subplots(figsize=(5, 4))
+        bars_ev = ax.barh(ev_df.index, ev_df.values, color=cores_ev, edgecolor='white', height=0.5)
+        ax.axvline(0, color=CINZA_T, linewidth=1)
+        ax.bar_label(bars_ev, fmt='%.2f', padding=4, fontsize=9, fontweight='bold', color=CINZA_T)
+        ax.set_xlabel('Variação média (2022 − 2020)', color=CINZA_T)
+        ax.set_title('Variação dos indicadores', fontweight='bold', color=CINZA_T)
+        leg_el = [mpatches.Patch(color=AZUL_MED, label='Melhora'),
+                  mpatches.Patch(color=MARSALA,  label='Queda')]
+        ax.legend(handles=leg_el, fontsize=8)
+        sns.despine()
+        st.pyplot(fig, use_container_width=True)
+        plt.close()
+
+    with col5:
+        st.markdown('<p class="secao-titulo">% em risco por faixa etária</p>', unsafe_allow_html=True)
+        df['FAIXA_ET'] = pd.cut(df['IDADE_ALUNO_2020'],
+            bins=[0,10,13,16,30], labels=['Até 10','11–13','14–16','17+'])
+        risco_faixa = df.dropna(subset=['FAIXA_ET','EM_RISCO'])
+        pct_risco_f = risco_faixa.groupby('FAIXA_ET', observed=True)['EM_RISCO'].mean() * 100
+        ns_faixa    = risco_faixa.groupby('FAIXA_ET', observed=True)['EM_RISCO'].count()
+        fig, ax = plt.subplots(figsize=(5, 4))
+        cores_faixa = [AZUL_CLA, AZUL_MED, VERM, MARSALA]
+        bars_f = ax.bar(pct_risco_f.index, pct_risco_f.values,
+                        color=cores_faixa, edgecolor='white', width=0.5)
+        for bar_f, val_f, n_f in zip(bars_f, pct_risco_f.values, ns_faixa.values):
+            ax.text(bar_f.get_x()+bar_f.get_width()/2, val_f+0.4,
+                    f'{val_f:.1f}%\n(n={int(n_f)})',
+                    ha='center', fontsize=9, fontweight='bold', color=CINZA_T)
+        ax.set_ylabel('% em risco', color=CINZA_T)
+        ax.set_ylim(0, 30)
+        ax.set_title('% em risco por faixa etária', fontweight='bold', color=CINZA_T)
+        sns.despine()
+        st.pyplot(fig, use_container_width=True)
+        plt.close()
+
+    st.markdown("---")
+
+    # ── Fileira 3: ponto de virada + tempo na PM + indicadores por pedra ──
+    col6, col7, col8 = st.columns(3)
+
+    with col6:
+        st.markdown('<p class="secao-titulo">% Ponto de Virada por Pedra (2022)</p>', unsafe_allow_html=True)
+        d_pv     = df.dropna(subset=['PEDRA_2022','PONTO_VIRADA_2022'])
+        pv_pedra = d_pv.groupby('PEDRA_2022', observed=True)['PONTO_VIRADA_2022'].mean() * 100
+        pv_pedra = pv_pedra.reindex(PEDRAS_ORDEM).dropna()
+        fig, ax  = plt.subplots(figsize=(5, 4))
+        bars_pv  = ax.bar(pv_pedra.index, pv_pedra.values,
+                          color=[PEDRAS_CORES[p] for p in pv_pedra.index],
+                          edgecolor='white', width=0.5)
+        ax.bar_label(bars_pv, fmt='%.1f%%', padding=4, fontsize=10, fontweight='bold', color=CINZA_T)
+        ax.set_ylabel('% que atingiu o PV', color=CINZA_T)
+        ax.set_ylim(0, 45)
+        ax.tick_params(axis='x', rotation=10)
+        ax.set_title('Ponto de Virada por Pedra', fontweight='bold', color=CINZA_T)
+        sns.despine()
+        st.pyplot(fig, use_container_width=True)
+        plt.close()
+
+    with col7:
         st.markdown('<p class="secao-titulo">INDE médio por tempo na Passos Mágicos</p>', unsafe_allow_html=True)
         d_tempo = df[['ANOS_PM_2020','INDE_2020']].dropna()
         it = d_tempo.groupby('ANOS_PM_2020')['INDE_2020'].agg(['mean','count']).reset_index()
         it.columns = ['anos','media','n']
         it = it[it['n'] >= 10]
-        fig, ax = plt.subplots(figsize=(6, 4))
+        fig, ax = plt.subplots(figsize=(5, 4))
         ax.plot(it['anos'], it['media'], 'o-', color=AZUL_MED, linewidth=2.5, markersize=9)
         for _, row in it.iterrows():
             ax.annotate(f'{row["media"]:.2f}\n(n={int(row["n"])})',
                         xy=(row['anos'], row['media']),
                         xytext=(0, 14), textcoords='offset points',
                         ha='center', fontsize=8, color=AZUL_MED, fontweight='bold')
-        ax.set_xlabel('Anos na Passos Mágicos')
-        ax.set_ylabel('INDE médio (2020)')
+        ax.set_xlabel('Anos na Passos Mágicos', color=CINZA_T)
+        ax.set_ylabel('INDE médio', color=CINZA_T)
         ax.set_ylim(5, 10)
+        ax.set_title('Tempo no programa × INDE', fontweight='bold', color=CINZA_T)
+        ax.grid(alpha=0.3)
+        sns.despine()
+        st.pyplot(fig, use_container_width=True)
+        plt.close()
+
+    with col8:
+        st.markdown('<p class="secao-titulo">IDA médio por Pedra e ano</p>', unsafe_allow_html=True)
+        ida_pedra = df_long.groupby(['ANO','PEDRA'], observed=True)['IDA'].mean().reset_index().dropna()
+        fig, ax = plt.subplots(figsize=(5, 4))
+        for pedra, cor in PEDRAS_CORES.items():
+            d = ida_pedra[ida_pedra['PEDRA'] == pedra]
+            if not d.empty:
+                ax.plot(d['ANO'], d['IDA'], 'o--', color=cor, linewidth=1.8,
+                        markersize=7, label=pedra, alpha=0.9)
+        ax.set_xticks([2020, 2021, 2022])
+        ax.set_ylim(2, 10)
+        ax.set_ylabel('IDA médio', color=CINZA_T)
+        ax.set_title('Desempenho acadêmico por Pedra', fontweight='bold', color=CINZA_T)
+        ax.legend(title='Pedra', fontsize=8, loc='lower right')
         ax.grid(alpha=0.3)
         sns.despine()
         st.pyplot(fig, use_container_width=True)
