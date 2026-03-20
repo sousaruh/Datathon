@@ -26,7 +26,7 @@ st.set_page_config(
 st.markdown("""
 <style>
     /* ── Sidebar ── */
-    div[data-testid="stSidebar"] { background: #0D2B5E; }
+    div[data-testid="stSidebar"] { background: #536191; }
     div[data-testid="stSidebar"] * { color: #E8EEF7 !important; }
 
     /* ── Fundo geral ── */
