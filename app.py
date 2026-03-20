@@ -25,39 +25,82 @@ st.set_page_config(
 # ──────────────────────────────────────────────
 st.markdown("""
 <style>
+    /* ── Sidebar ── */
+    div[data-testid="stSidebar"] { background: #0D2B5E; }
+    div[data-testid="stSidebar"] * { color: #E8EEF7 !important; }
+
+    /* ── Fundo geral ── */
+    .main .block-container { background: #F5F7FB; padding-top: 1.5rem; }
+
+    /* ── Cards de métricas ── */
     .metric-card {
-        background: #f8f9fa;
-        border-radius: 12px;
-        padding: 20px;
+        background: #FFFFFF;
+        border-radius: 10px;
+        padding: 18px 16px;
         text-align: center;
-        border-left: 4px solid #1E4D8C;
+        border-top: 3px solid #1A3F7A;
         margin-bottom: 8px;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.07);
     }
-    .metric-card h2 { margin: 0; color: #1E4D8C; font-size: 2rem; }
-    .metric-card p  { margin: 4px 0 0 0; color: #555; font-size: 0.9rem; }
-    .risco-alto   { background: #fde8e8; border-left: 4px solid #E74C3C; border-radius: 8px; padding: 12px; }
-    .risco-medio  { background: #fff3cd; border-left: 4px solid #F4831F; border-radius: 8px; padding: 12px; }
-    .risco-baixo  { background: #d4edda; border-left: 4px solid #27AE60; border-radius: 8px; padding: 12px; }
-    .secao-titulo { font-size: 1.1rem; font-weight: 700; color: #1E4D8C; margin-bottom: 8px; }
-    div[data-testid="stSidebar"] { background: #1E4D8C; }
-    div[data-testid="stSidebar"] * { color: white !important; }
+    .metric-card h2 { margin: 0; color: #1A3F7A; font-size: 1.9rem; font-weight: 600; }
+    .metric-card p  { margin: 4px 0 0 0; color: #6B7A99; font-size: 0.85rem; }
+    .metric-card.danger  { border-top-color: #B03A2E; }
+    .metric-card.danger h2 { color: #B03A2E; }
+    .metric-card.success { border-top-color: #1A6B3A; }
+    .metric-card.success h2 { color: #1A6B3A; }
+
+    /* ── Caixas de risco ── */
+    .risco-alto  { background: #FBEAEA; border-left: 4px solid #B03A2E; border-radius: 8px; padding: 16px; }
+    .risco-medio { background: #EAF0FB; border-left: 4px solid #2E6BB0; border-radius: 8px; padding: 16px; }
+    .risco-baixo { background: #EAF4EE; border-left: 4px solid #1A6B3A; border-radius: 8px; padding: 16px; }
+
+    /* ── Títulos de seção ── */
+    .secao-titulo { font-size: 1rem; font-weight: 600; color: #1A3F7A; margin-bottom: 8px; letter-spacing: 0.01em; }
 </style>
 """, unsafe_allow_html=True)
 
 # ──────────────────────────────────────────────
 # CONSTANTES
 # ──────────────────────────────────────────────
-AZUL    = '#1E4D8C'
-LARANJA = '#F4831F'
-VERDE   = '#27AE60'
-ROXO    = '#8E44AD'
-CINZA   = '#7F8C8D'
-VERMELHO= '#E74C3C'
-AMARELO = '#F1C40F'
+AZUL_ESC  = '#0D2B5E'
+AZUL      = '#1A3F7A'
+AZUL_MED  = '#2E6BB0'
+AZUL_CLA  = '#A8C4E0'
+VERMELHO  = '#B03A2E'
+VERM_CLA  = '#D9534F'
+CINZA_ESC = '#4A5568'
+CINZA     = '#8FA0B5'
+CINZA_CLA = '#E8EEF7'
+BRANCO    = '#FFFFFF'
+
+CORES_ANOS = {'2020': '#A8C4E0', '2021': '#2E6BB0', '2022': '#0D2B5E'}
 
 PEDRAS_ORDEM = ['Quartzo', 'Ágata', 'Ametista', 'Topázio']
-PEDRAS_CORES = {'Quartzo': '#7F8C8D', 'Ágata': '#1ABC9C',
-                'Ametista': '#8E44AD', 'Topázio': '#F1C40F'}
+PEDRAS_CORES = {
+    'Quartzo':  '#8FA0B5',
+    'Ágata':    '#2E6BB0',
+    'Ametista': '#1A3F7A',
+    'Topázio':  '#B03A2E',
+}
+
+plt.rcParams.update({
+    'axes.facecolor':    '#F5F7FB',
+    'figure.facecolor':  '#F5F7FB',
+    'axes.edgecolor':    '#D0D9E8',
+    'axes.labelcolor':   '#4A5568',
+    'xtick.color':       '#4A5568',
+    'ytick.color':       '#4A5568',
+    'text.color':        '#4A5568',
+    'axes.spines.top':   False,
+    'axes.spines.right': False,
+    'axes.grid':         True,
+    'grid.color':        '#D0D9E8',
+    'grid.linewidth':    0.5,
+    'font.family':       'sans-serif',
+    'axes.titlesize':    13,
+    'axes.labelsize':    11,
+    'figure.dpi':        130,
+})
 
 ALL_FEATURES = [
     'IAN_2020','IDA_2020','IEG_2020','IAA_2020','IPS_2020','IPP_2020','IPV_2020','INDE_2020',
@@ -241,7 +284,7 @@ if pagina == "✨ Visão Geral":
     pv_data = {str(ano): df[f'PONTO_VIRADA_{ano}'].mean()*100 for ano in [2020,2021,2022]}
     fig, ax = plt.subplots(figsize=(5, 3))
     bars = ax.bar(pv_data.keys(), pv_data.values(),
-                  color=[AZUL, LARANJA, VERDE], edgecolor='white', width=0.4)
+                  color=[AZUL_CLA, AZUL_MED, AZUL_ESC], edgecolor='white', width=0.4)
     ax.bar_label(bars, fmt='%.1f%%', padding=4, fontsize=11, fontweight='bold')
     ax.set_ylim(0, 25)
     ax.set_ylabel('%')
@@ -275,7 +318,7 @@ elif pagina == "📊 Indicadores":
         sns.kdeplot(dados, color=AZUL, linewidth=2.5, ax=ax)
         ax.axvline(dados.mean(), color=VERMELHO, linestyle='--', linewidth=2,
                    label=f'Média: {dados.mean():.2f}')
-        ax.axvline(dados.median(), color=VERDE, linestyle='--', linewidth=2,
+        ax.axvline(dados.median(), color=AZUL_MED, linestyle='--', linewidth=2,
                    label=f'Mediana: {dados.median():.2f}')
         ax.set_xlabel(indicador)
         ax.set_ylabel('Densidade')
@@ -357,7 +400,7 @@ elif pagina == "👤 Perfil do Aluno":
             <p>Ponto de Virada 2022</p></div>""", unsafe_allow_html=True)
     with col4:
         prob = row.get('PROB_RISCO', np.nan)
-        cor_risco = VERMELHO if prob > 0.4 else (LARANJA if prob > 0.2 else VERDE)
+        cor_risco = VERMELHO if prob > 0.4 else (AZUL_MED if prob > 0.2 else '#1A6B3A')
         st.markdown(f"""<div class="metric-card" style="border-left-color:{cor_risco}">
             <h2 style="color:{cor_risco}">{f'{prob*100:.1f}%' if pd.notna(prob) else 'N/D'}</h2>
             <p>Probabilidade de risco</p></div>""", unsafe_allow_html=True)
@@ -445,49 +488,67 @@ elif pagina == "👤 Perfil do Aluno":
 # ══════════════════════════════════════════════
 elif pagina == "🔮 Previsão de Risco":
     st.title("🔮 Previsão de Risco de Defasagem")
-    st.markdown("Insira os indicadores do aluno para calcular a probabilidade de risco.")
-    st.markdown("---")
+    st.markdown("Insira os indicadores do aluno para calcular a probabilidade de risco de defasagem no próximo ano.")
 
+    # ── Dicionário de siglas (expansível) ──
+    with st.expander("📖 O que significa cada sigla? Clique para ver o dicionário de indicadores"):
+        st.markdown("""
+| Sigla | Nome completo | O que mede |
+|---|---|---|
+| **IAN** | Indicador de Adequação ao Nível | Se o aluno está no nível certo para sua fase — quanto menor, maior a defasagem |
+| **IDA** | Indicador de Desempenho Acadêmico | Média das notas de aprendizagem do aluno nas disciplinas |
+| **IEG** | Indicador de Engajamento | Grau de participação e envolvimento nas atividades do programa |
+| **IAA** | Indicador de Autoavaliação | Como o aluno percebe seu próprio desempenho e evolução |
+| **IPS** | Indicador Psicossocial | Bem-estar emocional e condições psicossociais do aluno |
+| **IPP** | Indicador Psicopedagógico | Avaliação feita pela equipe psicopedagógica sobre o aluno |
+| **IPV** | Indicador de Ponto de Virada | Proximidade do aluno ao seu momento de transformação |
+| **INDE** | Índice de Desenvolvimento Educacional | Nota geral do aluno — média ponderada de todos os indicadores acima |
+
+> Todos os indicadores variam de **0 a 10**. Quanto maior, melhor o desempenho do aluno naquela dimensão.
+> A classificação por **Pedra** é baseada no INDE: Quartzo (2,4–5,5) · Ágata (5,5–6,9) · Ametista (6,9–8,2) · Topázio (8,2–9,3)
+        """)
+
+    st.markdown("---")
     st.markdown("### Indicadores de 2021")
     col1, col2, col3, col4 = st.columns(4)
     with col1:
-        ian_21 = st.slider("IAN 2021", 0.0, 10.0, 7.0, 0.1)
-        ida_21 = st.slider("IDA 2021", 0.0, 10.0, 6.0, 0.1)
+        ian_21 = st.slider("IAN — Adequação ao Nível (2021)", 0.0, 10.0, 7.0, 0.1)
+        ida_21 = st.slider("IDA — Desempenho Acadêmico (2021)", 0.0, 10.0, 6.0, 0.1)
     with col2:
-        ieg_21 = st.slider("IEG 2021", 0.0, 10.0, 7.0, 0.1)
-        iaa_21 = st.slider("IAA 2021", 0.0, 10.0, 8.0, 0.1)
+        ieg_21 = st.slider("IEG — Engajamento (2021)", 0.0, 10.0, 7.0, 0.1)
+        iaa_21 = st.slider("IAA — Autoavaliação (2021)", 0.0, 10.0, 8.0, 0.1)
     with col3:
-        ips_21 = st.slider("IPS 2021", 0.0, 10.0, 7.0, 0.1)
-        ipp_21 = st.slider("IPP 2021", 0.0, 10.0, 7.5, 0.1)
+        ips_21 = st.slider("IPS — Psicossocial (2021)", 0.0, 10.0, 7.0, 0.1)
+        ipp_21 = st.slider("IPP — Psicopedagógico (2021)", 0.0, 10.0, 7.5, 0.1)
     with col4:
-        ipv_21 = st.slider("IPV 2021", 0.0, 10.0, 7.5, 0.1)
-        inde_21 = st.slider("INDE 2021", 0.0, 10.0, 7.0, 0.1)
+        ipv_21 = st.slider("IPV — Ponto de Virada (2021)", 0.0, 10.0, 7.5, 0.1)
+        inde_21 = st.slider("INDE — Índice Geral (2021)", 0.0, 10.0, 7.0, 0.1)
 
     st.markdown("### Indicadores de 2020")
     col5, col6, col7, col8 = st.columns(4)
     with col5:
-        ian_20 = st.slider("IAN 2020", 0.0, 10.0, 7.5, 0.1)
-        ida_20 = st.slider("IDA 2020", 0.0, 10.0, 6.5, 0.1)
+        ian_20 = st.slider("IAN — Adequação ao Nível (2020)", 0.0, 10.0, 7.5, 0.1)
+        ida_20 = st.slider("IDA — Desempenho Acadêmico (2020)", 0.0, 10.0, 6.5, 0.1)
     with col6:
-        ieg_20 = st.slider("IEG 2020", 0.0, 10.0, 7.5, 0.1)
-        iaa_20 = st.slider("IAA 2020", 0.0, 10.0, 8.5, 0.1)
+        ieg_20 = st.slider("IEG — Engajamento (2020)", 0.0, 10.0, 7.5, 0.1)
+        iaa_20 = st.slider("IAA — Autoavaliação (2020)", 0.0, 10.0, 8.5, 0.1)
     with col7:
-        ips_20 = st.slider("IPS 2020", 0.0, 10.0, 7.0, 0.1)
-        ipp_20 = st.slider("IPP 2020", 0.0, 10.0, 7.0, 0.1)
+        ips_20 = st.slider("IPS — Psicossocial (2020)", 0.0, 10.0, 7.0, 0.1)
+        ipp_20 = st.slider("IPP — Psicopedagógico (2020)", 0.0, 10.0, 7.0, 0.1)
     with col8:
-        ipv_20 = st.slider("IPV 2020", 0.0, 10.0, 7.5, 0.1)
-        inde_20 = st.slider("INDE 2020", 0.0, 10.0, 7.3, 0.1)
+        ipv_20 = st.slider("IPV — Ponto de Virada (2020)", 0.0, 10.0, 7.5, 0.1)
+        inde_20 = st.slider("INDE — Índice Geral (2020)", 0.0, 10.0, 7.3, 0.1)
 
     st.markdown("### Informações adicionais")
     col9, col10, col11 = st.columns(3)
     with col9:
-        idade = st.number_input("Idade (2020)", min_value=5, max_value=25, value=12)
+        idade = st.number_input("Idade do aluno (em 2020)", min_value=5, max_value=25, value=12)
         anos_pm = st.number_input("Anos na Passos Mágicos", min_value=0, max_value=10, value=1)
     with col10:
-        pv_21_inp = st.selectbox("Atingiu Ponto de Virada em 2021?", ['Não', 'Sim'])
-        pedra_21_inp = st.selectbox("Pedra 2021", PEDRAS_ORDEM)
+        pv_21_inp = st.selectbox("Atingiu o Ponto de Virada em 2021?", ['Não', 'Sim'])
+        pedra_21_inp = st.selectbox("Classificação (Pedra) em 2021", PEDRAS_ORDEM)
     with col11:
-        pedra_20_inp = st.selectbox("Pedra 2020", PEDRAS_ORDEM)
+        pedra_20_inp = st.selectbox("Classificação (Pedra) em 2020", PEDRAS_ORDEM)
 
     st.markdown("---")
     if st.button("🔮 Calcular Probabilidade de Risco", type="primary", use_container_width=True):
@@ -514,6 +575,8 @@ elif pagina == "🔮 Previsão de Risco":
         proba = modelo.predict_proba(entrada_imp)[0][1]
 
         st.markdown("---")
+
+        # ── Resultado principal ──
         col_r1, col_r2, col_r3 = st.columns([1, 2, 1])
         with col_r2:
             if proba >= 0.4:
@@ -533,33 +596,119 @@ elif pagina == "🔮 Previsão de Risco":
             <div class="{classe}" style="text-align:center; padding: 24px;">
                 <h1>{emoji} {proba*100:.1f}%</h1>
                 <h3>Risco {nivel} de Defasagem</h3>
-                <p>{'Atenção recomendada: este aluno apresenta sinais de risco.' if proba >= 0.3 else 'Aluno com perfil favorável para o próximo ano.'}</p>
             </div>
             """, unsafe_allow_html=True)
 
         st.markdown("---")
-        st.markdown("### Fatores que mais contribuíram para este resultado")
+
+        # ── O que fazer com esse resultado ──
+        st.markdown("### O que esse resultado significa?")
+
+        if proba >= 0.4:
+            st.error("""
+**Risco ALTO — Ação imediata recomendada**
+
+Este aluno apresenta padrões que historicamente antecedem quedas significativas de desempenho. Recomenda-se:
+
+- 📋 **Avaliação psicopedagógica** prioritária com a equipe da Passos Mágicos
+- 🎯 **Acompanhamento individualizado** com reforço nas disciplinas com menor IDA
+- 💬 **Conversa com a família** para entender possíveis fatores externos que impactam o IPS
+- 📈 **Revisão da fase atual** — verificar se o aluno está na fase adequada ao seu nível (IAN)
+- 🔁 **Reavaliação em 30 dias** para monitorar a evolução dos indicadores
+            """)
+        elif proba >= 0.2:
+            st.warning("""
+**Risco MODERADO — Atenção e monitoramento**
+
+O aluno apresenta alguns sinais de alerta que merecem atenção, mas ainda há tempo para intervenções preventivas:
+
+- 👁️ **Monitoramento próximo** dos indicadores de engajamento (IEG) e desempenho (IDA)
+- 🤝 **Diálogo com o aluno** sobre sua autoavaliação e percepção do próprio progresso
+- 📚 **Suporte adicional** nas áreas onde o desempenho está abaixo da média da fase
+- 📅 **Reavaliação** no próximo ciclo de avaliação do PEDE
+            """)
+        else:
+            st.success("""
+**Risco BAIXO — Perfil favorável**
+
+O aluno apresenta indicadores consistentes com um bom desenvolvimento para o próximo ano:
+
+- ✅ Manter o acompanhamento regular dentro do ciclo normal da Passos Mágicos
+- 🌟 Considerar indicação para bolsa ou oportunidades externas se INDE ≥ 8,0
+- 📊 Continuar monitorando os indicadores no próximo PEDE para confirmar a trajetória positiva
+            """)
+
+        st.markdown("---")
+
+        # ── Fatores que mais influenciaram ──
+        st.markdown("### Quais indicadores mais pesaram nesta previsão?")
+        st.caption("As barras mostram o peso de cada indicador no modelo. Vermelho = trajetória (variação entre anos), azul escuro = 2021, azul claro = 2020.")
+
         imp_df = pd.DataFrame({
             'feature': ALL_FEATURES,
             'importance': modelo.feature_importances_
-        }).sort_values('importance', ascending=False).head(8)
+        }).sort_values('importance', ascending=False).head(10)
 
-        fig, ax = plt.subplots(figsize=(8, 4))
-        cores_imp = [ROXO if 'MEDIA' in f or 'DELTA' in f else
-                     LARANJA if '2021' in f else AZUL for f in imp_df['feature']]
-        bars = ax.barh(imp_df['feature'][::-1], imp_df['importance'][::-1],
-                       color=cores_imp[::-1], edgecolor='white', height=0.55)
+        # Traduzir nomes das features para exibição
+        traducao = {
+            'MEDIA_INDE': 'INDE médio (trajetória)',
+            'INDE_2021':  'INDE 2021',
+            'MEDIA_IEG':  'IEG médio (trajetória)',
+            'MEDIA_IDA':  'IDA médio (trajetória)',
+            'IPV_2021':   'IPV 2021',
+            'IDA_2021':   'IDA 2021',
+            'INDE_2020':  'INDE 2020',
+            'IDA_2020':   'IDA 2020',
+            'IPV_2020':   'IPV 2020',
+            'IEG_2020':   'IEG 2020',
+            'DELTA_INDE': 'Variação do INDE',
+            'MEDIA_IAN':  'IAN médio (trajetória)',
+            'IEG_2021':   'IEG 2021',
+            'IAA_2021':   'IAA 2021',
+        }
+        imp_df['nome'] = imp_df['feature'].map(lambda x: traducao.get(x, x))
+
+        fig, ax = plt.subplots(figsize=(8, 5))
+        cores_imp = [VERMELHO if 'MEDIA' in f or 'DELTA' in f else
+                     AZUL_MED if '2021' in f else AZUL for f in imp_df['feature']]
+        bars = ax.barh(imp_df['nome'][::-1], imp_df['importance'][::-1],
+                       color=cores_imp[::-1], edgecolor='white', height=0.6)
         ax.bar_label(bars, fmt='%.4f', padding=4, fontsize=9)
-        ax.set_xlabel('Importância')
-        ax.set_title('Features mais relevantes do modelo', fontweight='bold')
-        legenda = [mpatches.Patch(color=ROXO, label='Trajetória'),
-                   mpatches.Patch(color=LARANJA, label='2021'),
-                   mpatches.Patch(color=AZUL, label='2020')]
-        ax.legend(handles=legenda, fontsize=8)
+        ax.set_xlabel('Importância no modelo')
+        ax.set_title('Top 10 indicadores mais relevantes para a previsão', fontweight='bold')
+        legenda = [mpatches.Patch(color=VERMELHO, label='Trajetória (média/variação entre anos)'),
+                   mpatches.Patch(color=AZUL_MED, label='Indicador de 2021'),
+                   mpatches.Patch(color=AZUL,     label='Indicador de 2020')]
+        ax.legend(handles=legenda, fontsize=8, loc='lower right')
         ax.grid(axis='x', alpha=0.3)
         sns.despine()
         st.pyplot(fig, use_container_width=True)
         plt.close()
+
+        # ── Resumo dos valores inseridos ──
+        st.markdown("---")
+        st.markdown("### Resumo dos dados inseridos")
+        col_s1, col_s2 = st.columns(2)
+        with col_s1:
+            st.caption("**Indicadores 2021**")
+            resumo_21 = pd.DataFrame({
+                'Indicador': ['IAN','IDA','IEG','IAA','IPS','IPP','IPV','INDE'],
+                'Valor 2021': [ian_21,ida_21,ieg_21,iaa_21,ips_21,ipp_21,ipv_21,inde_21],
+                'Média geral 2021': [6.90,5.43,6.82,8.15,6.84,7.58,7.41,6.89]
+            })
+            resumo_21['Situação'] = resumo_21.apply(
+                lambda r: '✅ Acima' if r['Valor 2021'] >= r['Média geral 2021'] else '⚠️ Abaixo', axis=1)
+            st.dataframe(resumo_21, use_container_width=True, hide_index=True)
+        with col_s2:
+            st.caption("**Indicadores 2020**")
+            resumo_20 = pd.DataFrame({
+                'Indicador': ['IAN','IDA','IEG','IAA','IPS','IPP','IPV','INDE'],
+                'Valor 2020': [ian_20,ida_20,ieg_20,iaa_20,ips_20,ipp_20,ipv_20,inde_20],
+                'Média geral 2020': [7.43,6.32,7.68,8.37,6.74,7.07,7.24,7.30]
+            })
+            resumo_20['Situação'] = resumo_20.apply(
+                lambda r: '✅ Acima' if r['Valor 2020'] >= r['Média geral 2020'] else '⚠️ Abaixo', axis=1)
+            st.dataframe(resumo_20, use_container_width=True, hide_index=True)
 
 # ══════════════════════════════════════════════
 # PÁGINA 5 — ALUNOS EM RISCO
@@ -625,7 +774,7 @@ elif pagina == "🚨 Alunos em Risco":
     faixas = d_risco['FAIXA_RISCO'].value_counts().sort_index()
     fig, ax = plt.subplots(figsize=(7, 3.5))
     bars = ax.bar(faixas.index, faixas.values,
-                  color=[LARANJA, VERMELHO, '#8B0000'], edgecolor='white', width=0.4)
+                  color=[AZUL_CLA, VERM_CLA, VERMELHO], edgecolor='white', width=0.4)
     ax.bar_label(bars, fmt='%d', padding=4, fontsize=11, fontweight='bold')
     ax.set_ylabel('Nº de alunos')
     ax.grid(axis='y', alpha=0.3)
@@ -678,7 +827,7 @@ elif pagina == "📈 Efetividade":
         labels = [f'Subiu\n{melhora} ({melhora/total*100:.1f}%)',
                   f'Manteve\n{estavel} ({estavel/total*100:.1f}%)',
                   f'Desceu\n{piora} ({piora/total*100:.1f}%)']
-        ax.pie(vals, labels=labels, colors=[VERDE, CINZA, VERMELHO],
+        ax.pie(vals, labels=labels, colors=[AZUL_MED, CINZA, VERMELHO],
                startangle=90, wedgeprops=dict(edgecolor='white', linewidth=2),
                textprops=dict(fontsize=9))
         ax.set_title('2021 → 2022', fontweight='bold')
@@ -694,7 +843,7 @@ elif pagina == "📈 Efetividade":
         d_bolsa['Grupo'] = d_bolsa['BOLSISTA_2022'].map({1:'Bolsista',0:'Não bolsista'})
         fig, ax = plt.subplots(figsize=(6, 4))
         sns.boxplot(data=d_bolsa, x='Grupo', y='INDE_2022',
-                    palette={'Bolsista': VERDE, 'Não bolsista': CINZA},
+                    palette={'Bolsista': AZUL, 'Não bolsista': CINZA},
                     ax=ax, width=0.4, linewidth=1.5)
         medias = d_bolsa.groupby('Grupo')['INDE_2022'].mean()
         for i, (grupo, media) in enumerate(medias.items()):
@@ -713,12 +862,12 @@ elif pagina == "📈 Efetividade":
         it.columns = ['anos','media','n']
         it = it[it['n'] >= 10]
         fig, ax = plt.subplots(figsize=(6, 4))
-        ax.plot(it['anos'], it['media'], 'o-', color=ROXO, linewidth=2.5, markersize=9)
+        ax.plot(it['anos'], it['media'], 'o-', color=AZUL_MED, linewidth=2.5, markersize=9)
         for _, row in it.iterrows():
             ax.annotate(f'{row["media"]:.2f}\n(n={int(row["n"])})',
                         xy=(row['anos'], row['media']),
                         xytext=(0, 14), textcoords='offset points',
-                        ha='center', fontsize=8, color=ROXO, fontweight='bold')
+                        ha='center', fontsize=8, color=AZUL_MED, fontweight='bold')
         ax.set_xlabel('Anos na Passos Mágicos')
         ax.set_ylabel('INDE médio (2020)')
         ax.set_ylim(5, 10)
