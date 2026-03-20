@@ -26,8 +26,14 @@ st.set_page_config(
 st.markdown("""
 <style>
     /* ── Sidebar ── */
-    div[data-testid="stSidebar"] { background: #536191; }
-    div[data-testid="stSidebar"] * { color: #E8EEF7 !important; }
+    div[data-testid="stSidebar"] { background: #54688f !important; }
+    div[data-testid="stSidebar"] *,
+    div[data-testid="stSidebar"] p,
+    div[data-testid="stSidebar"] span,
+    div[data-testid="stSidebar"] label,
+    div[data-testid="stSidebar"] div,
+    div[data-testid="stSidebar"] .stRadio label,
+    div[data-testid="stSidebar"] .stRadio span { color: #FFFFFF !important; }
 
     /* ── Fundo geral ── */
     .main .block-container { background: #F5F7FB; padding-top: 1.5rem; }
