@@ -62,42 +62,48 @@ st.markdown("""
 # ──────────────────────────────────────────────
 # CONSTANTES
 # ──────────────────────────────────────────────
-AZUL_ESC  = '#0D2B5E'
-AZUL      = '#1A3F7A'
-AZUL_MED  = '#2E6BB0'
-AZUL_CLA  = '#A8C4E0'
-VERMELHO  = '#B03A2E'
-VERM_CLA  = '#D9534F'
-CINZA_ESC = '#4A5568'
-CINZA     = '#8FA0B5'
-CINZA_CLA = '#E8EEF7'
+AZUL_ESC  = '#1B2A4A'
+AZUL      = '#2C4A7C'
+AZUL_MED  = '#4A7FB5'
+AZUL_CLA  = '#B8CEDD'
+MARSALA   = '#6B2D3E'
+VERM      = '#9B3A3A'
+VERM_CLA  = '#C0635C'
+CINZA_T   = '#3D3D3D'
+CINZA     = '#8A9AB0'
+CINZA_CLA = '#EEF1F6'
 BRANCO    = '#FFFFFF'
+VERMELHO  = VERM
+CINZA_ESC = CINZA_T
 
-CORES_ANOS = {'2020': '#A8C4E0', '2021': '#2E6BB0', '2022': '#0D2B5E'}
+CORES_ANOS = {'2020': '#B8CEDD', '2021': '#4A7FB5', '2022': '#2C4A7C'}
 
 PEDRAS_ORDEM = ['Quartzo', 'Ágata', 'Ametista', 'Topázio']
 PEDRAS_CORES = {
-    'Quartzo':  '#8FA0B5',
-    'Ágata':    '#2E6BB0',
-    'Ametista': '#1A3F7A',
-    'Topázio':  '#B03A2E',
+    'Quartzo':  '#8A9AB0',
+    'Ágata':    '#4A7FB5',
+    'Ametista': '#9B3A3A',
+    'Topázio':  '#6B2D3E',
 }
 
 plt.rcParams.update({
-    'axes.facecolor':    '#F5F7FB',
-    'figure.facecolor':  '#F5F7FB',
-    'axes.edgecolor':    '#D0D9E8',
-    'axes.labelcolor':   '#4A5568',
-    'xtick.color':       '#4A5568',
-    'ytick.color':       '#4A5568',
-    'text.color':        '#4A5568',
+    'axes.facecolor':    '#FFFFFF',
+    'figure.facecolor':  '#FFFFFF',
+    'axes.edgecolor':    '#D0D5DE',
+    'axes.labelcolor':   '#3D3D3D',
+    'xtick.color':       '#3D3D3D',
+    'ytick.color':       '#3D3D3D',
+    'text.color':        '#3D3D3D',
+    'axes.titlecolor':   '#3D3D3D',
+    'legend.labelcolor': '#3D3D3D',
     'axes.spines.top':   False,
     'axes.spines.right': False,
     'axes.grid':         True,
-    'grid.color':        '#D0D9E8',
+    'grid.color':        '#E5E9EF',
     'grid.linewidth':    0.5,
     'font.family':       'sans-serif',
-    'axes.titlesize':    13,
+    'axes.titlesize':    12,
+    'axes.titleweight':  'bold',
     'axes.labelsize':    11,
     'figure.dpi':        130,
 })
@@ -278,8 +284,28 @@ if pagina == "✨ Visão Geral":
         st.pyplot(fig, use_container_width=True)
         plt.close()
 
+    # Explicacao das Pedras
+    st.markdown('---')
+    st.markdown('<p class="secao-titulo">Sistema de classificação por Pedras</p>', unsafe_allow_html=True)
+    col_p1, col_p2, col_p3, col_p4 = st.columns(4)
+    pedra_info = [
+        ('Quartzo',  '#8A9AB0', '2,405 – 5,506', 'Estágio inicial. Requer acompanhamento próximo para superar defasagens.'),
+        ('Ágata',    '#4A7FB5', '5,506 – 6,868', 'Desenvolvimento moderado. Já demonstra progresso, ainda precisa de suporte.'),
+        ('Ametista', '#9B3A3A', '6,868 – 8,230', 'Bom desempenho. Está dentro do esperado e tende a continuar evoluindo.'),
+        ('Topázio',  '#6B2D3E', '8,230 – 9,294', 'Excelência. Candidato prioritário a bolsas e oportunidades externas.'),
+    ]
+    for col_p, (nome, cor, faixa, desc) in zip([col_p1,col_p2,col_p3,col_p4], pedra_info):
+        with col_p:
+            st.markdown(
+                f'<div style="border-top:4px solid {cor};border-radius:10px;padding:14px;background:{cor}18;">'
+                f'<div style="font-weight:700;color:{cor};font-size:1rem;margin-bottom:4px;">{nome}</div>'
+                f'<div style="font-size:0.78rem;color:#3D3D3D;font-weight:600;margin-bottom:8px;">INDE: {faixa}</div>'
+                f'<div style="font-size:0.78rem;color:#555;line-height:1.4;">{desc}</div>'
+                '</div>',
+                unsafe_allow_html=True)
+
     # Ponto de Virada
-    st.markdown("---")
+    st.markdown('---')
     st.markdown('<p class="secao-titulo">% de alunos que atingiram o Ponto de Virada</p>', unsafe_allow_html=True)
     pv_data = {str(ano): df[f'PONTO_VIRADA_{ano}'].mean()*100 for ano in [2020,2021,2022]}
     fig, ax = plt.subplots(figsize=(5, 3))
@@ -298,8 +324,22 @@ if pagina == "✨ Visão Geral":
 # ══════════════════════════════════════════════
 elif pagina == "📊 Indicadores":
     st.title("📊 Análise por Indicador")
-    st.markdown("---")
 
+    with st.expander("📖 Dicionário de indicadores — o que é cada sigla?"):
+        st.markdown("""
+| Sigla | Nome completo | O que mede |
+|---|---|---|
+| **IAN** | Adequação ao Nível | Se o aluno está no nível certo para sua fase |
+| **IDA** | Desempenho Acadêmico | Média das notas nas disciplinas do programa |
+| **IEG** | Engajamento | Participação e envolvimento nas atividades |
+| **IAA** | Autoavaliação | Como o aluno avalia seu próprio progresso |
+| **IPS** | Psicossocial | Bem-estar emocional e contexto social |
+| **IPP** | Psicopedagogógico | Avaliação da equipe psicopedagogógica |
+| **IPV** | Ponto de Virada | Proximidade ao momento de transformação |
+| **INDE** | Índice de Desenvolvimento | Nota geral — média ponderada de todos acima |
+""")
+
+    st.markdown("---")
     col_f1, col_f2 = st.columns(2)
     with col_f1:
         indicador = st.selectbox("Indicador", ['IAN','IDA','IEG','IAA','IPS','IPP','IPV','INDE'])
@@ -328,17 +368,27 @@ elif pagina == "📊 Indicadores":
         plt.close()
 
     with col2:
-        st.markdown(f'<p class="secao-titulo">{indicador} por Pedra em {ano_sel}</p>', unsafe_allow_html=True)
+        st.markdown(f'<p class="secao-titulo">{indicador} médio por Pedra em {ano_sel}</p>', unsafe_allow_html=True)
         pedra_col = f'PEDRA_{ano_sel}'
-        d_box = df[[pedra_col, col]].dropna()
-        ordem = [p for p in PEDRAS_ORDEM if p in d_box[pedra_col].values]
+        d_bar = df[[pedra_col, col]].dropna()
+        ordem = [p for p in PEDRAS_ORDEM if p in d_bar[pedra_col].values]
+        medias_p = d_bar.groupby(pedra_col, observed=True)[col].mean().reindex(ordem)
+        ns_p     = d_bar.groupby(pedra_col, observed=True)[col].count().reindex(ordem)
         fig, ax = plt.subplots(figsize=(6, 4))
-        sns.boxplot(data=d_box, x=pedra_col, y=col, order=ordem,
-                    palette={p: PEDRAS_CORES[p] for p in ordem},
-                    ax=ax, width=0.5, linewidth=1.2)
-        ax.set_xlabel('Pedra')
-        ax.set_ylabel(indicador)
-        ax.tick_params(axis='x', rotation=15)
+        bars_p = ax.bar(ordem, medias_p.values,
+                        color=[PEDRAS_CORES[p] for p in ordem],
+                        edgecolor='white', width=0.5)
+        for bar_p, val_p, n_p in zip(bars_p, medias_p.values, ns_p.values):
+            ax.text(bar_p.get_x()+bar_p.get_width()/2, val_p+0.12,
+                    f'{val_p:.2f}\n(n={int(n_p)})',
+                    ha='center', fontsize=9, color=CINZA_T, fontweight='bold')
+        ax.axhline(d_bar[col].mean(), color=VERM, linestyle='--',
+                   linewidth=1.5, label=f'Média geral: {d_bar[col].mean():.2f}')
+        ax.set_xlabel('Pedra', color=CINZA_T)
+        ax.set_ylabel(f'{indicador} médio', color=CINZA_T)
+        ax.set_ylim(0, 11)
+        ax.legend(fontsize=9)
+        ax.tick_params(axis='x', rotation=10)
         sns.despine()
         st.pyplot(fig, use_container_width=True)
         plt.close()
@@ -715,8 +765,22 @@ O aluno apresenta indicadores consistentes com um bom desenvolvimento para o pr�
 # ══════════════════════════════════════════════
 elif pagina == "🚨 Alunos em Risco":
     st.title("🚨 Triagem — Alunos em Risco de Defasagem")
-    st.markdown("---")
 
+    with st.expander("📖 O que é cada Fase? Clique para entender o filtro"):
+        st.markdown("""
+| Fase | Corresponde a | Descrição |
+|---|---|---|
+| **0** | 1º e 2º ano | Alfabetização — base da leitura e escrita |
+| **1** | 3º e 4º ano | Consolidação da leitura e matemática básica |
+| **2** | 5º e 6º ano | Transição para o fundamental II |
+| **3** | 7º e 8º ano | Aprofundamento — fase crítica para engajamento |
+| **4** | 9º ano | Preparação para o ensino médio |
+| **5** | 1º EM | Início do ensino médio |
+| **6** | 2º EM | Consolidação do ensino médio |
+| **7** | 3º EM | Preparação para vestibular e mercado de trabalho |
+""")
+
+    st.markdown("---")
     col_f1, col_f2, col_f3 = st.columns(3)
     with col_f1:
         threshold = st.slider("Threshold de risco mínimo", 0.1, 0.9, 0.3, 0.05,
@@ -838,19 +902,28 @@ elif pagina == "📈 Efetividade":
     col3, col4 = st.columns(2)
 
     with col3:
-        st.markdown('<p class="secao-titulo">Bolsistas vs Não bolsistas — INDE 2022</p>', unsafe_allow_html=True)
+        st.markdown('<p class="secao-titulo">INDE médio — bolsistas vs não bolsistas (2022)</p>', unsafe_allow_html=True)
         d_bolsa = df.dropna(subset=['BOLSISTA_2022','INDE_2022']).copy()
         d_bolsa['Grupo'] = d_bolsa['BOLSISTA_2022'].map({1:'Bolsista',0:'Não bolsista'})
+        medias_b  = d_bolsa.groupby('Grupo')['INDE_2022'].mean()
+        ns_b      = d_bolsa.groupby('Grupo')['INDE_2022'].count()
+        grupos_b  = ['Não bolsista','Bolsista']
+        vals_b    = [medias_b.get(g,0) for g in grupos_b]
+        ns_vals_b = [ns_b.get(g,0) for g in grupos_b]
         fig, ax = plt.subplots(figsize=(6, 4))
-        sns.boxplot(data=d_bolsa, x='Grupo', y='INDE_2022',
-                    palette={'Bolsista': AZUL, 'Não bolsista': CINZA},
-                    ax=ax, width=0.4, linewidth=1.5)
-        medias = d_bolsa.groupby('Grupo')['INDE_2022'].mean()
-        for i, (grupo, media) in enumerate(medias.items()):
-            ax.text(i, media + 0.05, f'{media:.2f}', ha='center',
-                    fontsize=11, fontweight='bold')
-        ax.set_xlabel('')
-        ax.set_ylabel('INDE 2022')
+        bars_b = ax.barh(grupos_b, vals_b,
+                         color=[CINZA, MARSALA], edgecolor='white', height=0.4)
+        for bar_b, val_b, n_b in zip(bars_b, vals_b, ns_vals_b):
+            ax.text(val_b+0.05, bar_b.get_y()+bar_b.get_height()/2,
+                    f'{val_b:.2f}  (n={int(n_b)})',
+                    va='center', fontsize=11, fontweight='bold', color=CINZA_T)
+        ax.set_xlabel('INDE médio 2022', color=CINZA_T)
+        ax.set_xlim(0, 10)
+        media_geral_b = d_bolsa['INDE_2022'].mean()
+        ax.axvline(media_geral_b, color=VERM_CLA, linestyle='--',
+                   linewidth=1.5, label=f'Média geral: {media_geral_b:.2f}')
+        ax.legend(fontsize=9)
+        ax.tick_params(colors=CINZA_T)
         sns.despine()
         st.pyplot(fig, use_container_width=True)
         plt.close()
