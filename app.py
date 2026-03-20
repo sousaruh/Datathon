@@ -26,14 +26,12 @@ st.set_page_config(
 st.markdown("""
 <style>
     /* ── Sidebar ── */
-    div[data-testid="stSidebar"] { background: #54688f !important; }
-    div[data-testid="stSidebar"] *,
-    div[data-testid="stSidebar"] p,
-    div[data-testid="stSidebar"] span,
-    div[data-testid="stSidebar"] label,
-    div[data-testid="stSidebar"] div,
-    div[data-testid="stSidebar"] .stRadio label,
-    div[data-testid="stSidebar"] .stRadio span { color: #FFFFFF !important; }
+    [data-testid="stSidebar"] { background-color: #F5F7FB !important; }
+    [data-testid="stSidebar"] * { color: #1B2A4A !important; }
+    [data-testid="stSidebar"] p { color: #4A5568 !important; }
+    [data-testid="stSidebar"] span { color: #1B2A4A !important; }
+    [data-testid="stSidebar"] label { color: #1B2A4A !important; }
+    [data-testid="stSidebar"] hr { border-color: #B8CEDD !important; }
 
     /* ── Fundo geral ── */
     .main .block-container { background: #F5F7FB; padding-top: 1.5rem; }
@@ -190,13 +188,14 @@ def treinar_modelo(df):
 # ──────────────────────────────────────────────
 with st.sidebar:
     st.markdown(
-        '<div style="font-size:1.5rem;font-weight:700;color:#FFFFFF;letter-spacing:0.02em;margin-bottom:2px;">'
-        '✨ Passos Mágicos</div>'
-        '<div style="font-size:0.78rem;color:#B8CEDD;margin-bottom:16px;">'
-        'Analytics · PEDE 2020–2022</div>',
+        '<div style="font-family:Georgia,serif;font-size:1.6rem;font-weight:900;'
+        'color:#1B3A6B;letter-spacing:0.03em;font-style:italic;margin-bottom:2px;">'
+        'Passos Mágicos</div>'
+        '<div style="font-size:0.75rem;color:#4A7FB5;font-weight:600;letter-spacing:0.06em;margin-bottom:16px;">'
+        'ANALYTICS · PEDE 2020–2022</div>',
         unsafe_allow_html=True)
-    st.markdown('<hr style="border-color:#2C4A7C;margin:0 0 12px 0">', unsafe_allow_html=True)
-    st.markdown('<p style="color:#B8CEDD;font-size:0.75rem;font-weight:600;letter-spacing:0.08em;margin-bottom:6px;">NAVEGAÇÃO</p>', unsafe_allow_html=True)
+    st.markdown('<hr style="border-color:#B8CEDD;margin:0 0 12px 0">', unsafe_allow_html=True)
+    st.markdown('<p style="color:#4A7FB5;font-size:0.75rem;font-weight:700;letter-spacing:0.1em;margin-bottom:6px;">NAVEGAÇÃO</p>', unsafe_allow_html=True)
     pagina = st.radio("", [
         "✨ Visão Geral",
         "📊 Indicadores",
@@ -205,8 +204,8 @@ with st.sidebar:
         "🚨 Alunos em Risco",
         "📈 Efetividade"
     ], label_visibility="collapsed")
-    st.markdown('<hr style="border-color:#2C4A7C;margin:12px 0">', unsafe_allow_html=True)
-    st.markdown('<p style="color:#B8CEDD;font-size:0.72rem;">Datathon FIAP · Fase 5<br>Passos Mágicos · 2020–2022</p>', unsafe_allow_html=True)
+    st.markdown('<hr style="border-color:#B8CEDD;margin:12px 0">', unsafe_allow_html=True)
+    st.markdown('<p style="color:#8A9AB0;font-size:0.72rem;">Datathon FIAP · Fase 5<br>Passos Mágicos · 2020–2022</p>', unsafe_allow_html=True)
 
 # ──────────────────────────────────────────────
 # CARREGAMENTO
