@@ -111,14 +111,13 @@ plt.rcParams.update({
     'figure.dpi':        130,
 })
 
-ALL_FEATURES = [
-    'IAN_2020','IDA_2020','IEG_2020','IAA_2020','IPS_2020','IPP_2020','IPV_2020','INDE_2020',
-    'IDADE_ALUNO_2020','ANOS_PM_2020','PEDRA_2020_NUM',
-    'IAN_2021','IDA_2021','IEG_2021','IAA_2021','IPS_2021','IPP_2021','IPV_2021','INDE_2021',
-    'PONTO_VIRADA_2021','PEDRA_2021_NUM',
-    'DELTA_INDE','DELTA_IDA','DELTA_IEG','DELTA_IAN','DELTA_IPV',
-    'MEDIA_INDE','MEDIA_IDA','MEDIA_IEG','MEDIA_IAN'
-]
+# Features: 8 indicadores × 2020 e 2021 (sem vazamento de 2022)
+# Alinhado com o notebook TC5_PassosMagicos
+INDICADORES_ML = ['IAN','IDA','IEG','IAA','IPS','IPP','IPV','INDE']
+ALL_FEATURES = (
+    [f'{ind}_2020' for ind in INDICADORES_ML] +
+    [f'{ind}_2021' for ind in INDICADORES_ML]
+)
 
 # ──────────────────────────────────────────────
 # CARREGAMENTO E PREPARAÇÃO DOS DADOS
@@ -153,7 +152,8 @@ def carregar_dados():
     df['MEDIA_IDA']  = df[['IDA_2020','IDA_2021']].mean(axis=1)
     df['MEDIA_IEG']  = df[['IEG_2020','IEG_2021']].mean(axis=1)
     df['MEDIA_IAN']  = df[['IAN_2020','IAN_2021']].mean(axis=1)
-    df['EM_RISCO']   = ((df['INDE_2022'] < 6.0) | (df['IAN_2022'] < 5.0)).astype(float)
+    # Target alinhado com notebook: INDE < 6.187 OU IAN < 6.187 (limiar Ágata)
+    df['EM_RISCO']   = ((df['INDE_2022'] < 6.187) | (df['IAN_2022'] < 6.187)).astype(float)
 
     # DataFrame long
     frames = []
@@ -169,18 +169,20 @@ def carregar_dados():
 
 @st.cache_resource
 def treinar_modelo(df):
-    d = df[ALL_FEATURES + ['EM_RISCO']].dropna(subset=['EM_RISCO'])
-    X = d[ALL_FEATURES]
+    feats_disp = [f for f in ALL_FEATURES if f in df.columns]
+    d = df[feats_disp + ['EM_RISCO']].dropna(subset=['EM_RISCO'])
+    X = d[feats_disp]
     y = d['EM_RISCO']
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.2, random_state=42, stratify=y)
     imputer = SimpleImputer(strategy='median')
     X_train_imp = imputer.fit_transform(X_train)
+    # Random Forest — mesmo algoritmo do notebook TC5
     modelo = RandomForestClassifier(
         n_estimators=300, max_depth=8, min_samples_leaf=5,
         max_features='sqrt', class_weight='balanced', random_state=42, n_jobs=-1)
     modelo.fit(X_train_imp, y_train)
-    return modelo, imputer
+    return modelo, imputer, feats_disp
 
 # ──────────────────────────────────────────────
 # SIDEBAR — NAVEGAÇÃO
@@ -211,10 +213,10 @@ with st.sidebar:
 # ──────────────────────────────────────────────
 with st.spinner("Carregando dados..."):
     df, df_long = carregar_dados()
-    modelo, imputer = treinar_modelo(df)
+    modelo, imputer, FEATS_USADAS = treinar_modelo(df)
 
 # Adicionar probabilidade de risco ao df
-X_all = df[ALL_FEATURES].copy()
+X_all = df[FEATS_USADAS].copy()
 X_all_imp = imputer.transform(X_all)
 df['PROB_RISCO'] = modelo.predict_proba(X_all_imp)[:, 1]
 
@@ -457,7 +459,8 @@ elif pagina == "Perfil do Aluno":
             <p>Ponto de Virada 2022</p></div>""", unsafe_allow_html=True)
     with col4:
         prob = row.get('PROB_RISCO', np.nan)
-        cor_risco = VERMELHO if prob > 0.4 else (AZUL_MED if prob > 0.2 else '#1A6B3A')
+        # Thresholds alinhados com notebook: Alto≥0.70, Moderado≥0.40, Baixo<0.40
+        cor_risco = VERMELHO if prob >= 0.70 else (AZUL_MED if prob >= 0.40 else '#1A6B3A')
         st.markdown(f"""<div class="metric-card" style="border-left-color:{cor_risco}">
             <h2 style="color:{cor_risco}">{f'{prob*100:.1f}%' if pd.notna(prob) else 'N/D'}</h2>
             <p>Probabilidade de risco</p></div>""", unsafe_allow_html=True)
@@ -596,37 +599,12 @@ elif pagina == "Previsão de Risco":
         ipv_20 = st.slider("IPV — Ponto de Virada (2020)", 0.0, 10.0, 7.5, 0.1)
         inde_20 = st.slider("INDE — Índice Geral (2020)", 0.0, 10.0, 7.3, 0.1)
 
-    st.markdown("### Informações adicionais")
-    col9, col10, col11 = st.columns(3)
-    with col9:
-        idade = st.number_input("Idade do aluno (em 2020)", min_value=5, max_value=25, value=12)
-        anos_pm = st.number_input("Anos na Passos Mágicos", min_value=0, max_value=10, value=1)
-    with col10:
-        pv_21_inp = st.selectbox("Atingiu o Ponto de Virada em 2021?", ['Não', 'Sim'])
-        pedra_21_inp = st.selectbox("Classificação (Pedra) em 2021", PEDRAS_ORDEM)
-    with col11:
-        pedra_20_inp = st.selectbox("Classificação (Pedra) em 2020", PEDRAS_ORDEM)
-
     st.markdown("---")
     if st.button("Calcular Probabilidade de Risco", type="primary", use_container_width=True):
-        pedra_map = {'Quartzo':1,'Ágata':2,'Ametista':3,'Topázio':4}
-        delta_inde = inde_21 - inde_20
-        delta_ida  = ida_21  - ida_20
-        delta_ieg  = ieg_21  - ieg_20
-        delta_ian  = ian_21  - ian_20
-        delta_ipv  = ipv_21  - ipv_20
-        media_inde = (inde_20 + inde_21) / 2
-        media_ida  = (ida_20  + ida_21)  / 2
-        media_ieg  = (ieg_20  + ieg_21)  / 2
-        media_ian  = (ian_20  + ian_21)  / 2
-
+        # Entrada alinhada com notebook: 8 indicadores × 2020 + 8 × 2021
         entrada = np.array([[
             ian_20, ida_20, ieg_20, iaa_20, ips_20, ipp_20, ipv_20, inde_20,
-            idade, anos_pm, pedra_map[pedra_20_inp],
             ian_21, ida_21, ieg_21, iaa_21, ips_21, ipp_21, ipv_21, inde_21,
-            1 if pv_21_inp == 'Sim' else 0, pedra_map[pedra_21_inp],
-            delta_inde, delta_ida, delta_ieg, delta_ian, delta_ipv,
-            media_inde, media_ida, media_ieg, media_ian
         ]])
         entrada_imp = imputer.transform(entrada)
         proba = modelo.predict_proba(entrada_imp)[0][1]
@@ -636,11 +614,12 @@ elif pagina == "Previsão de Risco":
         # ── Resultado principal ──
         col_r1, col_r2, col_r3 = st.columns([1, 2, 1])
         with col_r2:
-            if proba >= 0.4:
+            # Thresholds do notebook: Alto≥0.70, Moderado≥0.40, Baixo<0.40
+            if proba >= 0.70:
                 nivel = "ALTO"
                 classe = "risco-alto"
                 emoji = "🔴"
-            elif proba >= 0.2:
+            elif proba >= 0.40:
                 nivel = "MODERADO"
                 classe = "risco-medio"
                 emoji = "🟡"
@@ -702,28 +681,12 @@ O aluno apresenta indicadores consistentes com um bom desenvolvimento para o pr�
         st.caption("As barras mostram o peso de cada indicador no modelo. Vermelho = trajetória (variação entre anos), azul escuro = 2021, azul claro = 2020.")
 
         imp_df = pd.DataFrame({
-            'feature': ALL_FEATURES,
+            'feature': FEATS_USADAS,
             'importance': modelo.feature_importances_
         }).sort_values('importance', ascending=False).head(10)
-
-        # Traduzir nomes das features para exibição
-        traducao = {
-            'MEDIA_INDE': 'INDE médio (trajetória)',
-            'INDE_2021':  'INDE 2021',
-            'MEDIA_IEG':  'IEG médio (trajetória)',
-            'MEDIA_IDA':  'IDA médio (trajetória)',
-            'IPV_2021':   'IPV 2021',
-            'IDA_2021':   'IDA 2021',
-            'INDE_2020':  'INDE 2020',
-            'IDA_2020':   'IDA 2020',
-            'IPV_2020':   'IPV 2020',
-            'IEG_2020':   'IEG 2020',
-            'DELTA_INDE': 'Variação do INDE',
-            'MEDIA_IAN':  'IAN médio (trajetória)',
-            'IEG_2021':   'IEG 2021',
-            'IAA_2021':   'IAA 2021',
-        }
-        imp_df['nome'] = imp_df['feature'].map(lambda x: traducao.get(x, x))
+        imp_df['nome'] = imp_df['feature'].apply(
+            lambda x: x.replace('_2020', ' (2020)').replace('_2021', ' (2021)')
+        )
 
         fig, ax = plt.subplots(figsize=(8, 5))
         cores_imp = [VERMELHO if 'MEDIA' in f or 'DELTA' in f else
@@ -746,26 +709,24 @@ O aluno apresenta indicadores consistentes com um bom desenvolvimento para o pr�
         st.markdown("---")
         st.markdown("### Resumo dos dados inseridos")
         col_s1, col_s2 = st.columns(2)
-        with col_s1:
-            st.caption("**Indicadores 2021**")
-            resumo_21 = pd.DataFrame({
-                'Indicador': ['IAN','IDA','IEG','IAA','IPS','IPP','IPV','INDE'],
-                'Valor 2021': [ian_21,ida_21,ieg_21,iaa_21,ips_21,ipp_21,ipv_21,inde_21],
-                'Média geral 2021': [6.90,5.43,6.82,8.15,6.84,7.58,7.41,6.89]
-            })
-            resumo_21['Situação'] = resumo_21.apply(
-                lambda r: '✅ Acima' if r['Valor 2021'] >= r['Média geral 2021'] else '⚠️ Abaixo', axis=1)
-            st.dataframe(resumo_21, use_container_width=True, hide_index=True)
-        with col_s2:
-            st.caption("**Indicadores 2020**")
-            resumo_20 = pd.DataFrame({
-                'Indicador': ['IAN','IDA','IEG','IAA','IPS','IPP','IPV','INDE'],
-                'Valor 2020': [ian_20,ida_20,ieg_20,iaa_20,ips_20,ipp_20,ipv_20,inde_20],
-                'Média geral 2020': [7.43,6.32,7.68,8.37,6.74,7.07,7.24,7.30]
-            })
-            resumo_20['Situação'] = resumo_20.apply(
-                lambda r: '✅ Acima' if r['Valor 2020'] >= r['Média geral 2020'] else '⚠️ Abaixo', axis=1)
-            st.dataframe(resumo_20, use_container_width=True, hide_index=True)
+        medias_ref = {'IAN':{'2020':7.43,'2021':6.90},'IDA':{'2020':6.32,'2021':5.43},
+                      'IEG':{'2020':7.68,'2021':6.82},'IAA':{'2020':8.37,'2021':8.15},
+                      'IPS':{'2020':6.74,'2021':6.84},'IPP':{'2020':7.07,'2021':7.58},
+                      'IPV':{'2020':7.24,'2021':7.41},'INDE':{'2020':7.30,'2021':6.89}}
+        vals_inp = {'IAN':(ian_20,ian_21),'IDA':(ida_20,ida_21),'IEG':(ieg_20,ieg_21),
+                    'IAA':(iaa_20,iaa_21),'IPS':(ips_20,ips_21),'IPP':(ipp_20,ipp_21),
+                    'IPV':(ipv_20,ipv_21),'INDE':(inde_20,inde_21)}
+        for col_s, ano, idx in [(col_s1,'2020',0),(col_s2,'2021',1)]:
+            with col_s:
+                st.caption(f"**Indicadores {ano}**")
+                rows = []
+                for ind in INDICADORES_ML:
+                    val = vals_inp[ind][idx]
+                    med = medias_ref[ind][ano]
+                    rows.append({'Indicador':ind, f'Valor {ano}':val,
+                                 f'Média {ano}':med,
+                                 'Situação':'✅ Acima' if val >= med else '⚠️ Abaixo'})
+                st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
 
 # ══════════════════════════════════════════════
 # PÁGINA 5 — ALUNOS EM RISCO
