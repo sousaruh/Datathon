@@ -569,10 +569,20 @@ elif pagina == "Previsão de Risco":
         """)
 
     st.markdown("---")
+    st.info("**IAN** só assume 3 valores conforme o dicionário oficial: "
+            "**10** (em fase) · **5** (defasagem moderada) · **2,5** (defasagem severa). "
+            "Os demais indicadores são contínuos de 0 a 10.")
+    st.info("**IAN** segue o dicionário oficial da Passos Mágicos — só assume 3 valores: "
+            "**10** (em fase, sem defasagem) · **5** (defasagem moderada) · **2,5** (defasagem severa). "
+            "Os demais indicadores são escalas contínuas de 0 a 10.")
     st.markdown("### Indicadores de 2021")
     col1, col2, col3, col4 = st.columns(4)
     with col1:
-        ian_21 = st.slider("IAN — Adequação ao Nível (2021)", 0.0, 10.0, 7.0, 0.1)
+        ian_21 = st.selectbox(
+            "IAN — Adequação ao Nível (2021)",
+            options=[10.0, 5.0, 2.5],
+            format_func=lambda x: {10.0: "10 — Em fase (sem defasagem)", 5.0: "5 — Defasagem moderada", 2.5: "2,5 — Defasagem severa"}[x],
+            index=0)
         ida_21 = st.slider("IDA — Desempenho Acadêmico (2021)", 0.0, 10.0, 6.0, 0.1)
     with col2:
         ieg_21 = st.slider("IEG — Engajamento (2021)", 0.0, 10.0, 7.0, 0.1)
@@ -587,7 +597,11 @@ elif pagina == "Previsão de Risco":
     st.markdown("### Indicadores de 2020")
     col5, col6, col7, col8 = st.columns(4)
     with col5:
-        ian_20 = st.slider("IAN — Adequação ao Nível (2020)", 0.0, 10.0, 7.5, 0.1)
+        ian_20 = st.selectbox(
+            "IAN — Adequação ao Nível (2020)",
+            options=[10.0, 5.0, 2.5],
+            format_func=lambda x: {10.0: "10 — Em fase (sem defasagem)", 5.0: "5 — Defasagem moderada", 2.5: "2,5 — Defasagem severa"}[x],
+            index=0)
         ida_20 = st.slider("IDA — Desempenho Acadêmico (2020)", 0.0, 10.0, 6.5, 0.1)
     with col6:
         ieg_20 = st.slider("IEG — Engajamento (2020)", 0.0, 10.0, 7.5, 0.1)
